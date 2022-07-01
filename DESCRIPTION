@@ -1,0 +1,31 @@
+Package: MAYA
+Type: Package
+Title: Multimodes of pathwAY Activation 
+Version: 1.0.0
+Author: Yuna Landais <yuna.landais@onebiosciences.fr>, Celine Vallot <celine.vallot@curie.fr>
+Maintainer: <yuna.landais@onebiosciences.fr>
+Description: Unsupervised cell type annotation and multimodal pathway activation study
+License: GNU Affero General Public License v3.0
+Encoding: UTF-8
+LazyData: true
+Depends: 
+    Matrix, 
+    dplyr, 
+    ggplot2,
+    umap,
+	stats,
+	parallel,
+	igraph,
+	RANN,
+	pheatmap,
+	wesanderson,
+	viridis,
+	leidenbase
+Suggests: 
+    xlsx,
+    BiocStyle,
+    knitr,
+    rmarkdown
+VignetteBuilder:
+    knitr
+RoxygenNote: 7.1.2
