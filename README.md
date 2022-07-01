@@ -2,12 +2,6 @@
 title: "MAYA User Guide"
 author: "YL and CV for OBS"
 package: MAYA
-output:
-  BiocStyle::html_document
-vignette: >
-  %\VignetteIndexEntry{manual}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
 ---
 
 # Introduction
