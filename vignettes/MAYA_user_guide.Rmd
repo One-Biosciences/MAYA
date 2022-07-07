@@ -3,7 +3,7 @@ title: "MAYA User Guide"
 author: "YL and CV for OBS"
 package: MAYA
 output:
-  BiocStyle::html_document
+  rmarkdown::github_document
 vignette: >
   %\VignetteIndexEntry{manual}
   %\VignetteEngine{knitr::rmarkdown}
@@ -19,15 +19,13 @@ MAYA provides functions to build a multimodal pathway activity matrix, compute U
 MAYA also provides a function to predict cell type based on PanglaoDB or any custom cell type markers list provided by the user. Cells can also be visualized in embeddings computed based on the marker activity matrix. MAYA is not run in a multimodal way for cell type prediction for interpretability purposes. 
 
 
-# Quick start
+# Installation
 
-For now, users need to have access to the tar.gz source file of the package. It can be installed using the following command, where "path_to_source" is the absolute path of local source file, after installing manually some dependencies.
+This package requires R >= 4.0.5 to run and can be installed using devtools:
 
 ```{r, eval=FALSE}
-install.packages(c("Matrix","dplyr","ggplot2","umap","stats","igraph","RANN",
-"pheatmap","viridis","leidenbase","wesanderson"))
-
-install.packages(path_to_source, repos = NULL, type="source")
+install.packages("devtools")
+devtools::install_github("one-biosciences/maya")
 ```
 
 # Use case: kidney dataset
