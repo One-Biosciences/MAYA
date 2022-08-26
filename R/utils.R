@@ -8,17 +8,16 @@
 #' @return Numeric matrix.
 #'
 #' @examples
-#' raw_mat <- matrix(1:20, ncol=5, nrow=4)
-#' norm_mat<-logcpmNormalization(raw_mat)
-#'
+#' raw_mat <- matrix(1:20, ncol = 5, nrow = 4)
+#' norm_mat <- logcpmNormalization(raw_mat)
 #' @import Matrix
 #'
 #' @export
-logcpmNormalization <- function(X){
-    X <- Matrix::t(Matrix::t(X)/Matrix::colSums(X))*1e6
-    X<-log1p(X)
-    #X@x <- log2(X@x + 1) if sparse
-    #return(as.matrix(X))
+logcpmNormalization <- function(X) {
+    X <- Matrix::t(Matrix::t(X) / Matrix::colSums(X)) * 1e6
+    X <- log1p(X)
+    # X@x <- log2(X@x + 1) if sparse
+    # return(as.matrix(X))
     return(X) # to allow sparse format that works with prcomp for PCA computation
 }
 
@@ -34,8 +33,8 @@ logcpmNormalization <- function(X){
 #' @examples
 #' vect <- rnorm(n = 50, mean = 25, sd = 3)
 #' cal_z_score(vect)
-cal_z_score <- function(x){
-    (x - min(x)) / (max(x)-min(x))
+cal_z_score <- function(x) {
+    (x - min(x)) / (max(x) - min(x))
 }
 
 #' Scale matrix rows between 0 and 1
@@ -48,12 +47,11 @@ cal_z_score <- function(x){
 #'
 #'
 #' @examples
-#' raw_mat <- matrix(1:20, ncol=5, nrow=4)
+#' raw_mat <- matrix(1:20, ncol = 5, nrow = 4)
 #' norm_mat <- scale_0_1(raw_mat)
-#'
 #' @export
 #'
-scale_0_1 <- function(X){
+scale_0_1 <- function(X) {
     X <- t(apply(X, 1, cal_z_score))
     return(X)
 }
@@ -70,16 +68,17 @@ scale_0_1 <- function(X){
 #'
 #' @examples
 #' read_gmt("path/to/my/file.gmt")
-#'
 #' @export
-read_gmt<-function(gmt_file_name){
+read_gmt <- function(gmt_file_name) {
     #### Check parameters ####
     stopifnot(file.exists(gmt_file_name))
 
     #### Read GMT file ####
-    gmt <- strsplit(readLines(gmt_file_name), '\t')
+    gmt <- strsplit(readLines(gmt_file_name), "\t")
     names(gmt) <- sapply(gmt, `[`, 1)
-    gmt <- lapply(gmt, function(x) { genes=x[-c(1,2)] })
+    gmt <- lapply(gmt, function(x) {
+        genes <- x[-c(1, 2)]
+    })
     return(gmt)
 }
 
@@ -131,26 +130,29 @@ knn_jaccard <- function(knn) {
 #' @return Numeric/sparse matrix.
 #'
 #' @import dplyr
-average_by_cluster<-function(mat,annotation){
+average_by_cluster <- function(mat, annotation) {
 
     # get all possible clusters
-    clusters<-unique(annotation)
+    clusters <- unique(annotation)
 
     # compute row means for each subsetted matrix by cell type and store it as a list
-    means<-lapply(clusters,function(x){
-        if(length(which(annotation==x))>1){
-            tmp<-mat[,which(annotation==x)]
-            rowMeans(tmp)
-        }
-        else{
-            mat[,which(annotation==x)]
-        }
+    means <- lapply(clusters, function(x) {
+        if (length(which(annotation == x)) > 1) {
+            tmp <- mat[, which(annotation == x)]
 
+            if (!is.null(dim(tmp)) && dim(tmp)[1] > 1) {
+                rowMeans(tmp)
+            } else {
+                as.matrix(mean(tmp))
+            }
+        } else {
+            mat[, which(annotation == x)]
+        }
     })
     # store result as a matrix
-    names(means)<-clusters
-    out<-as.matrix(dplyr::bind_cols(means))
-    rownames(out)<-rownames(mat)
+    names(means) <- clusters
+    out <- as.matrix(dplyr::bind_cols(means))
+    rownames(out) <- rownames(mat)
 
     return(out)
 }
@@ -165,7 +167,7 @@ average_by_cluster<-function(mat,annotation){
 #' @import umap
 #'
 #' @export
-run_umap<-function(mat){
+run_umap <- function(mat) {
 
     #### Check parameters ####
     stopifnot(is.numeric(mat))
@@ -185,21 +187,22 @@ run_umap<-function(mat){
 #' @import wesanderson
 #'
 #' @export
-generate_palette<-function(length){
+generate_palette <- function(length) {
     set.seed(6)
-    palette=unique(c(wesanderson::wes_palette("Rushmore1")[3],
-                     wesanderson::wes_palette("Rushmore1")[5],
-                     wesanderson::wes_palette("Zissou1")[1],
-                     wesanderson::wes_palette("Zissou1")[3],
-                     wesanderson::wes_palette("Darjeeling1")[4],
-                     wesanderson::wes_palette("GrandBudapest2")[1],
-                     sample(c(wesanderson::wes_palette("Darjeeling1"),wesanderson::wes_palette("Darjeeling2")[1:4],wesanderson::wes_palette("Moonrise3")[1:3],wesanderson::wes_palette("GrandBudapest1"),wesanderson::wes_palette("GrandBudapest2")))))
-    if(length<=length(palette)){
-        palette=palette[1:length]
-    }
-    else{
-        palette=rep(palette,times=round(length/length(palette))+1)
-        palette=palette[1:length]
+    palette <- unique(c(
+        wesanderson::wes_palette("Rushmore1")[3],
+        wesanderson::wes_palette("Rushmore1")[5],
+        wesanderson::wes_palette("Zissou1")[1],
+        wesanderson::wes_palette("Zissou1")[3],
+        wesanderson::wes_palette("Darjeeling1")[4],
+        wesanderson::wes_palette("GrandBudapest2")[1],
+        sample(c(wesanderson::wes_palette("Darjeeling1"), wesanderson::wes_palette("Darjeeling2")[1:4], wesanderson::wes_palette("Moonrise3")[1:3], wesanderson::wes_palette("GrandBudapest1"), wesanderson::wes_palette("GrandBudapest2")))
+    ))
+    if (length <= length(palette)) {
+        palette <- palette[1:length]
+    } else {
+        palette <- rep(palette, times = round(length / length(palette)) + 1)
+        palette <- palette[1:length]
     }
     return(palette)
 }
