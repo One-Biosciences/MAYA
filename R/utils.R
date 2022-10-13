@@ -16,6 +16,8 @@
 logcpmNormalization <- function(X) {
     X <- Matrix::t(Matrix::t(X) / Matrix::colSums(X)) * 1e6
     X <- log1p(X)
+    # Handle unfiltered matrix, 0/0 -> NaN is not compatible with sparse matrix operations
+    X@x[is.nan(X@x)] <- 0
     # X@x <- log2(X@x + 1) if sparse
     # return(as.matrix(X))
     return(X) # to allow sparse format that works with prcomp for PCA computation
