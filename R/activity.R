@@ -21,37 +21,37 @@
 #'
 #' @export
 #'
-run_activity_analysis<-function(expr_mat,modules_list,norm=FALSE,nb_comp_max=5,min_cells_pct=0.05,nCores=1,min_module_size=10,max_contrib=0.5){
-
+run_activity_analysis<-function(expr_mat,modules_list,norm=FALSE,nb_comp_max=5,min_cells_pct=0.05,nCores=1,min_module_size=10,max_contrib=0.5,scale_before_pca=T,all_PCs_in_range=F){
+    
     message("Computing gene sets activity")
-
+    
     #### Check parameters ####
     stopifnot(is.list(modules_list),
               is.logical(norm),is.numeric(nb_comp_max),
               is.numeric(min_cells_pct),is.numeric(nCores),
               is.numeric(min_module_size),is.numeric(max_contrib))
     stopifnot(is(expr_mat, 'sparseMatrix') | is(expr_mat, 'matrix'))
-
+    
     expr_mat<-as(expr_mat,"dgCMatrix")
-
+    
     #### Normalize data if specified ####
     if(norm){
         expr_mat<-logcpmNormalization(expr_mat)
     }
     # remove genes expressed in less than 10 cells
     expr_mat<-expr_mat[Matrix::rowSums(expr_mat!=0)>=10,]
-
+    
     ### get minimum number of cells ###
     min_cells<-round(min_cells_pct*ncol(expr_mat))
-
+    
     #### Run PCA for each gene set ####
     compute_gene_set_activity <- function(x) {
         common_genes<-intersect(modules_list[[x]],rownames(expr_mat))
         if(length(common_genes)>=min_module_size){
             # perform PCA, compute explained var and modify PCA sign to favor activation.
-            pca<-stats::prcomp(scale(Matrix::t(expr_mat[common_genes,]),center=T,scale=T), scale = FALSE,retx = TRUE,rank. = 20)
+            pca<-stats::prcomp(scale(Matrix::t(expr_mat[common_genes,]),center=T,scale=scale_before_pca), scale = FALSE,retx = TRUE,rank. = 20)
             n=ncol(pca$x)
-            ExpVar <- apply(pca$x[, 1:n], 2, var)/sum(apply(scale(Matrix::t(expr_mat[common_genes,]),center=T,scale=T), 2, var))
+            ExpVar <- apply(pca$x[, 1:n], 2, var)/sum(apply(scale(Matrix::t(expr_mat[common_genes,]),center=T,scale=scale_before_pca), 2, var))
             # orientate PCs to favor activation (change orientation if genes with negative contributions have higher weights in absolute value than positive one)
             for(j in 1:min(min_module_size,nb_comp_max)){
                 if(sum(pca$rotation[,j])<0){
@@ -62,39 +62,57 @@ run_activity_analysis<-function(expr_mat,modules_list,norm=FALSE,nb_comp_max=5,m
             # scale projection for threshold detection
             projection<-scale_0_1(t(pca$x))
             # assess informativity of successive PCs and stop when conditions are unmet.
-            comp<-c()
-            list_thr<-c()
-            nb_selected_cells<-c()
-            for(i in 1:min(min_module_size,nb_comp_max)){
-                if(length(comp)==0){
-                    if(i>2){
-                        break
+            if(all_PCs_in_range==F){
+                comp<-c()
+                list_thr<-c()
+                nb_selected_cells<-c()
+                for(i in 1:min(min_module_size,nb_comp_max)){
+                    if(length(comp)==0){
+                        if(i>2){
+                            break
+                        }
                     }
-                }
-                if(length(comp)>0){
-                    if(tail(comp,1)+1!=i){
-                        break
+                    if(length(comp)>0){
+                        if(tail(comp,1)+1!=i){
+                            break
+                        }
                     }
-                }
-                if(max(abs(pca$rotation[,i]))<max_contrib){
-                    thr<-.activity_assignmentThreshold(activity = projection[i,])
-                    #stop when PC2 or more is uninformative
-                    if(thr>1&i>=2){
-                        break
-                    }
-                    #stop when PC2 or more is informative but doesn't distinguish enough active cells
-                    if(i>=2&length(which(projection[i,]>=thr))<min_cells){
-                        #if(length(which(projection[i,]>=thr))<min_cells){
-                        break
-                    }
-                    #if(thr<1){
-                    if(thr<1&length(which(projection[i,]>=thr))>=min_cells){
-                        comp<-c(comp,i)
-                        list_thr<-c(list_thr,thr)
-                        nb_selected_cells<-c(nb_selected_cells,length(which(projection[i,]>=thr)))
+                    if(max(abs(pca$rotation[,i]))<max_contrib){
+                        thr<-.activity_assignmentThreshold(activity = projection[i,])
+                        #stop when PC2 or more is uninformative
+                        if(thr>1&i>=2){
+                            break
+                        }
+                        #stop when PC2 or more is informative but doesn't distinguish enough active cells
+                        if(i>=2&length(which(projection[i,]>=thr))<min_cells){
+                            break
+                        }
+                        if(thr<1&length(which(projection[i,]>=thr))>=min_cells){
+                            comp<-c(comp,i)
+                            list_thr<-c(list_thr,thr)
+                            nb_selected_cells<-c(nb_selected_cells,length(which(projection[i,]>=thr)))
+                        }
                     }
                 }
             }
+            
+            else{
+                # assess informativity of successive PCs and DOES NOT stop when conditions are unmet, interrogate PCs until max PC
+                comp<-c()
+                list_thr<-c()
+                nb_selected_cells<-c()
+                for(i in 1:min(min_module_size,nb_comp_max)){
+                    if(max(abs(pca$rotation[,i]))<max_contrib){
+                        thr<-.activity_assignmentThreshold(activity = projection[i,])
+                        if(thr<1&length(which(projection[i,]>=thr))>=min_cells){
+                            comp<-c(comp,i)
+                            list_thr<-c(list_thr,thr)
+                            nb_selected_cells<-c(nb_selected_cells,length(which(projection[i,]>=thr)))
+                        }
+                    }
+                }
+            }
+            
             if(length(comp)!=0){
                 nb_comp<-min(length(comp),nb_comp_max,min_module_size)
                 # keep only PCs that pass threshold and keep scaled score
@@ -113,18 +131,18 @@ run_activity_analysis<-function(expr_mat,modules_list,norm=FALSE,nb_comp_max=5,m
             }
         }
     }
-
-
+    
+    
     output_object<-parallel::mclapply(names(modules_list), FUN = compute_gene_set_activity,mc.cores = nCores)
-
-
+    
+    
     #### Generate final output ####
     names(output_object)<-names(modules_list)
     #remove modules with no informative scores from the output object.
     output_object<-output_object[lapply(output_object,length)!=0]
-
+    
     message("Found at least one informative activation mode for ",length(output_object)," gene sets")
-
+    
     return(output_object)
 }
 

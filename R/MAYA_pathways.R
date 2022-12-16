@@ -58,26 +58,26 @@ study_pathways<-function(PCA_obj,compute_umap=T){
 #'
 #' @export
 #'
-MAYA_pathway_analysis<-function(expr_mat,modules_list=NULL,min_cells_pct=0.05,is_logcpm=T,nCores=1,min_genes=10,max_contrib=0.5,compute_umap=T){
+MAYA_pathway_analysis<-function(expr_mat,modules_list=NULL,min_cells_pct=0.05,is_logcpm=T,nCores=1,min_genes=10,max_contrib=0.5,compute_umap=T,scale_before_pca=T,all_PCs_in_range=F){
     message("Running pathway analysis")
-
+    
     #### Check parameters ####
     stopifnot(is.logical(is_logcpm),
               is.numeric(min_cells_pct),is.numeric(nCores))
-
+    
     # load modules list in Panglao if necessary
     if(is.null(modules_list)){
         message("Loading HALLMARK from MSigDB")
         path<-system.file("extdata", "h.all.v7.4.symbols.gmt", package = "MAYA")
         modules_list<-read_gmt(path)
-
+        
     }
     if(is.character(modules_list)){
         if(modules_list=="hallmark"){
             message("Loading HALLMARK from MSigDB")
             path<-system.file("extdata", "h.all.v7.4.symbols.gmt", package = "MAYA")
             modules_list<-read_gmt(path)
-
+            
         }
         else{
             if(modules_list=="kegg"){
@@ -86,23 +86,27 @@ MAYA_pathway_analysis<-function(expr_mat,modules_list=NULL,min_cells_pct=0.05,is
                 modules_list<-read_gmt(path)
             }
         }
-
+        
     }
     # at this stage, it can only be a list
     stopifnot(is.list(modules_list))
-
+    
     # run MAYA with pathways parameters
     suppressWarnings(PCA_obj<-run_activity_analysis(expr_mat = expr_mat,
-                                                                     modules_list =modules_list,
-                                                                     nb_comp_max = 5,
-                                                                     min_cells_pct = min_cells_pct,
-                                                                     min_module_size = min_genes,
-                                                                     max_contrib = max_contrib,
-                                                                     norm = !is_logcpm,
-                                                                     nCores = nCores))
+                                                    modules_list =modules_list,
+                                                    nb_comp_max = 5,
+                                                    min_cells_pct = min_cells_pct,
+                                                    min_module_size = min_genes,
+                                                    max_contrib = max_contrib,
+                                                    norm = !is_logcpm,
+                                                    nCores = nCores,
+                                                    scale_before_pca = scale_before_pca,
+                                                    all_PCs_in_range=all_PCs_in_range))
     # analyze pathways
-    annot<-study_pathways(PCA_obj,compute_umap=compute_umap)
-
+    if(length(PCA_obj)!=0){
+        annot<-study_pathways(PCA_obj,compute_umap=compute_umap)
+    }
+    else{annot<-NULL}
+    
     return(c(annot,list(PCA_obj=PCA_obj)))
 }
-
