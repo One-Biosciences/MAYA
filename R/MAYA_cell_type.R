@@ -86,24 +86,24 @@ generate_cell_type_annotation<-function(PCA_obj,thr=0,compute_umap=T){
 #'
 #' @export
 #'
-MAYA_predict_cell_types<-function(expr_mat,modules_list=NULL,min_cells_pct=0.05,organs=NULL,is_logcpm=F,nCores=1,thr=0,max_contrib=0.5,compute_umap=T,plot_heatmap=T){
+MAYA_predict_cell_types<-function(expr_mat,modules_list=NULL,min_cells_pct=0.05,organs=NULL,is_logcpm=F,nCores=1,thr=0,max_contrib=0.5,compute_umap=T,plot_heatmap=T,scale_before_pca=T){
     message("Running cell type identification")
-
+    
     #### Check parameters ####
     stopifnot(is.logical(is_logcpm),
               is.numeric(min_cells_pct),is.numeric(nCores))
     if(!is.null(modules_list)){
         stopifnot(is.list(modules_list))
     }
-
+    
     # load modules list in Panglao if necessary
     if(is.null(modules_list)){
         message("Loading PanglaoDB")
-
+        
         path<-system.file("extdata", "PanglaoDB_markers_27_Mar_2020.tsv", package = "MAYA")
         panglao<-read.table(path,header=T,sep="\t",quote='')
         panglao<-panglao[which(panglao$species=="Mm Hs" | panglao$species=="Hs"),]
-
+        
         # basic types
         panglao_basic<-panglao[which(panglao$organ %in% c("Connective tissue","Smooth muscle","Immune system","Vasculature","Blood","Epithelium","Skeletal muscle")),]
         basic_panglao<-list()
@@ -111,46 +111,48 @@ MAYA_predict_cell_types<-function(expr_mat,modules_list=NULL,min_cells_pct=0.05,
             if(!(cell_type %in% c("Endothelial cells (blood brain barrier)","Endothelial cells (aorta)","Gamma delta T cells"))){
                 basic_panglao[[cell_type]]<-panglao_basic[which(panglao_basic$cell.type==cell_type),"official.gene.symbol"]
             }
-
+            
         }
-
+        
         ### add lists for other organs if required
         if(!is.null(organs)){
             if(!is.null(intersect(unique(panglao$organ),organs))){
                 panglao_specif<-panglao[which(panglao$organ %in% organs),]
-
+                
                 for(cell_type in unique(panglao_specif$cell.type)){
                     basic_panglao[[cell_type]]<-panglao_specif[which(panglao_specif$cell.type==cell_type),"official.gene.symbol"]
                 }
-
+                
             }
             if(organs=="all"){
                 for(cell_type in unique(panglao$cell.type)){
                     basic_panglao[[cell_type]]<-panglao[which(panglao$cell.type==cell_type),"official.gene.symbol"]
                 }
-
+                
             }
-
+            
         }
-
+        
         modules_list<-basic_panglao
     }
-
+    
     # run MAYA with cell type parameters
     suppressWarnings(PCA_obj<-run_activity_analysis(expr_mat = expr_mat,
-                                                                     modules_list =modules_list,
-                                                                     nb_comp_max = 1,
-                                                                     min_cells_pct = min_cells_pct,
-                                                                     min_module_size = 10,
-                                                                     max_contrib = max_contrib,
-                                                                     norm = !is_logcpm,
-                                                                     nCores = nCores))
+                                                    modules_list =modules_list,
+                                                    nb_comp_max = 1,
+                                                    min_cells_pct = min_cells_pct,
+                                                    min_module_size = 10,
+                                                    max_contrib = max_contrib,
+                                                    norm = !is_logcpm,
+                                                    nCores = nCores,
+                                                    scale_before_pca = scale_before_pca,
+                                                    all_PCs_in_range=F))
     # predict cell annotations
     annot<-generate_cell_type_annotation(PCA_obj,thr=thr,compute_umap=compute_umap)
-
+    
     if(plot_heatmap==T){
         print(plot_heatmap_activity_mat(activity_mat = annot$activity_matrix))
     }
-
+    
     return(c(annot,list(PCA_obj=PCA_obj)))
 }
