@@ -25,6 +25,13 @@ install.packages("devtools")
 devtools::install_github("one-biosciences/maya")
 ```
 
+MAYA depends on several other R packages that should be installed automatically when installing MAYA using the command above. If not, users can run the following command to install them manually.
+
+```r
+# Optional
+install.packages(c("Matrix","dplry","ggplot2","umap","stats","igraph","RANN","pheatmap","viridis","leidenbase","wesanderson"))
+```
+
 # Use case: kidney dataset
 
 Through this use case, we will demonstrate the insight that brings multimodal pathway activity analysis to apprehend the cellular heterogeneity of a dataset. We will show how to use the different functions available in this package to run a full analysis of the activity of MSigDB HALLMARK gene sets in normal kidney cells.
@@ -290,6 +297,16 @@ plot_heatmap_activity_mat(activity_mat = activity_summary$activity_matrix,
 
 ![](README_figs/README-unnamed-chunk-19-1.png)<!-- -->
 
+
+
+### System requirements
+
+The package has been tested on Windows, Linux Ubuntu 20.04 and Mac OSX operating systems.
+
+### Running time
+
+The demo was generated using a computer with 32 GB RAM, CPU: 6 cores / 12 threads @ 2.6GHz.
+Installation took around 30 seconds with all dependencies already installed and the demo on the kidney dataset took around 25 seconds to complete.
 
 
 ```r
