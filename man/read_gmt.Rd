@@ -17,5 +17,4 @@ Imports specified GMT file as a list
 }
 \examples{
 read_gmt("path/to/my/file.gmt")
-
 }

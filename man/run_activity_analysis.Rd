@@ -12,7 +12,9 @@ run_activity_analysis(
   min_cells_pct = 0.05,
   nCores = 1,
   min_module_size = 10,
-  max_contrib = 0.5
+  max_contrib = 0.5,
+  scale_before_pca = T,
+  all_PCs_in_range = F
 )
 }
 \arguments{
