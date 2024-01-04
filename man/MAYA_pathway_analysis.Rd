@@ -12,7 +12,9 @@ MAYA_pathway_analysis(
   nCores = 1,
   min_genes = 10,
   max_contrib = 0.5,
-  compute_umap = T
+  compute_umap = T,
+  scale_before_pca = T,
+  all_PCs_in_range = F
 )
 }
 \arguments{
