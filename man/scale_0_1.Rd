@@ -16,7 +16,6 @@ Numeric matrix.
 The minimum value of each row is set to 0 and the maximum to 1.
 }
 \examples{
-raw_mat <- matrix(1:20, ncol=5, nrow=4)
+raw_mat <- matrix(1:20, ncol = 5, nrow = 4)
 norm_mat <- scale_0_1(raw_mat)
-
 }

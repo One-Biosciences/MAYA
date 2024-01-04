@@ -16,7 +16,6 @@ Numeric matrix.
 Converts continuous BMI variable to BMI groups.
 }
 \examples{
-raw_mat <- matrix(1:20, ncol=5, nrow=4)
-norm_mat<-logcpmNormalization(raw_mat)
-
+raw_mat <- matrix(1:20, ncol = 5, nrow = 4)
+norm_mat <- logcpmNormalization(raw_mat)
 }

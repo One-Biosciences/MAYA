@@ -14,7 +14,8 @@ MAYA_predict_cell_types(
   thr = 0,
   max_contrib = 0.5,
   compute_umap = T,
-  plot_heatmap = T
+  plot_heatmap = T,
+  scale_before_pca = T
 )
 }
 \arguments{
