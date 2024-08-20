@@ -1,0 +1,6 @@
+pandoc: '3.3'
+pkgdown: 2.1.0
+pkgdown_sha: ~
+articles:
+  MAYA_user_guide: MAYA_user_guide.html
+last_built: 2024-08-20T15:24Z
