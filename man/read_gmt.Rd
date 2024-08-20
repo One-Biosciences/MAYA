@@ -16,5 +16,5 @@ List of modules, each associated with a character vector containing genes consti
 Imports specified GMT file as a list
 }
 \examples{
-read_gmt("path/to/my/file.gmt")
+read_gmt(system.file("extdata", "h.all.v7.4.symbols.gmt", package = "MAYA"))
 }

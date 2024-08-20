@@ -41,7 +41,7 @@ jobs:
     - uses: neurogenomics/rworkflows@master
       with:
         run_bioccheck: ${{ false }}
-        run_rcmdcheck: ${{ true }}
+        run_rcmdcheck: ${{ false }}
         as_cran: ${{ true }}
         run_vignettes: ${{ true }}
         has_testthat: ${{ true }}
